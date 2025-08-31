@@ -4,176 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Run Analyzr - OAuth Callback</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-align: center;
-            min-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-        }
-        
-        .logo {
-            font-size: 3em;
-            margin-bottom: 20px;
-        }
-        
-        h1 {
-            margin: 0 0 20px 0;
-            font-size: 2em;
-            font-weight: 300;
-        }
-        
-        .status {
-            font-size: 1.2em;
-            margin: 20px 0;
-            padding: 15px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-        
-        .success { background: rgba(72, 187, 120, 0.3); }
-        .error { background: rgba(245, 101, 101, 0.3); }
-        .processing { background: rgba(66, 153, 225, 0.3); }
-        
-        .code-display {
-            font-family: 'Monaco', 'Menlo', monospace;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            word-break: break-all;
-        }
-        
-        .redirect-info {
-            margin-top: 30px;
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-        
-        @media (max-width: 600px) {
-            body { margin: 20px; padding: 10px; }
-            .container { padding: 20px; }
-            h1 { font-size: 1.5em; }
-            .logo { font-size: 2em; }
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">🏃‍♂️</div>
-        <h1>Run Analyzr</h1>
-        
-        <div id="status" class="status processing">
-            <div id="status-text">Processing OAuth callback...</div>
-        </div>
-        
-        <div id="code-display" class="code-display" style="display: none;">
-            <strong>Authorization Code:</strong><br>
-            <span id="auth-code"></span>
-        </div>
-        
-        <div class="redirect-info">
-            <p>You will be redirected back to the app shortly.</p>
-            <p>If the redirect doesn't work, you can close this page manually.</p>
-        </div>
-    </div>
+    <h1>Run Analyzr OAuth</h1>
+    <div id="status">Processing...</div>
 
     <script>
-        // Parse URL parameters
         function getURLParameter(name) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(name);
         }
         
-        // Update status display
-        function updateStatus(type, message) {
-            const statusDiv = document.getElementById('status');
-            const statusText = document.getElementById('status-text');
-            
-            statusDiv.className = `status ${type}`;
-            statusText.textContent = message;
-        }
-        
-        // Main processing function
         function processOAuthCallback() {
             const code = getURLParameter('code');
             const error = getURLParameter('error');
-            const state = getURLParameter('state');
-            
-            console.log('OAuth Callback received:', {
-                code: code ? `${code.substring(0, 10)}...` : null,
-                error: error,
-                state: state,
-                fullURL: window.location.href
-            });
+            const statusDiv = document.getElementById('status');
             
             if (error) {
-                updateStatus('error', `OAuth Error: ${error}`);
-                console.error('OAuth error:', error);
+                statusDiv.textContent = `Error: ${error}`;
                 return;
             }
             
             if (!code) {
-                updateStatus('error', 'No authorization code received');
-                console.error('No code parameter found in URL');
+                statusDiv.textContent = 'Error: No authorization code received';
                 return;
             }
             
-            // Display the code (first 20 characters for security)
-            document.getElementById('auth-code').textContent = 
-                code.length > 20 ? `${code.substring(0, 20)}...` : code;
-            document.getElementById('code-display').style.display = 'block';
+            statusDiv.textContent = 'Success! You can close this page.';
             
-            updateStatus('success', 'Authorization successful! 🎉');
-            
-            // Try to redirect back to the app
-            const appScheme = 'runanalyzr://oauth-success';
-            const fallbackScheme = `runanalyzr://oauth?code=${encodeURIComponent(code)}`;
-            
-            // Attempt to open the app
+            // Redirect to app
             setTimeout(() => {
-                console.log('Attempting to redirect to app...');
-                window.location.href = fallbackScheme;
-            }, 2000);
-            
-            // Fallback: try alternative schemes
-            setTimeout(() => {
-                console.log('Trying alternative redirect...');
-                window.location.href = appScheme;
-            }, 4000);
+                window.location.href = `runanalyzr://oauth?code=${encodeURIComponent(code)}`;
+            }, 1000);
         }
         
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('OAuth callback page loaded');
-            console.log('Current URL:', window.location.href);
-            
-            // Small delay to ensure page is fully rendered
-            setTimeout(processOAuthCallback, 500);
-        });
-        
-        // Handle page visibility changes (useful for debugging)
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'visible') {
-                console.log('Page became visible again');
-            }
-        });
+        document.addEventListener('DOMContentLoaded', processOAuthCallback);
     </script>
 </body>
 </html>
