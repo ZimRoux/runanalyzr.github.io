@@ -34,7 +34,7 @@
             
             // Redirect to app
             setTimeout(() => {
-                window.location.href = `runanalyzr://oauth?code=${encodeURIComponent(code)}`;
+                window.location.href = `runanalyzr://auth/callback?code=${encodeURIComponent(code)}`;
             }, 1000);
         }
         
